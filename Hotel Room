@@ -1,0 +1,43 @@
+// SPDX-Licence_Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract HotelRoom {
+    //Vacant
+    //Occupied
+    //Enum is a collection of options that never change (Goes by 0, 1, 2... When updating status i.e Vacant = 0)
+    enum Statuses { Vacant, Occupied }
+    Statuses public currentStatus;
+    // Defined event of a Booked room (logs and allows notification of occurance)
+    event Occupy(address _occuant, uint _value);
+    // State variable that shows the person whom owns the hotel room
+    // Payable modifier allows address to recive payment
+    address payable public owner;
+
+    constructor() {
+        owner = payable(msg.sender);
+        currentStatus = Statuses.Vacant;
+    }
+
+    modifier onlyWhileVacant {
+        // Check Status
+        require(currentStatus == Statuses.Vacant, "Currently occupied.");
+        _;
+    }
+
+    modifier costs(uint _amount) {
+        // Check Price
+        require(msg.value >= _amount, "Not enough ether provided.");
+        _;
+    }
+
+    // msg.value is the amount of ether sent when the function is called
+    function book() public payable onlyWhileVacant costs(2 ether) {
+        currentStatus = Statuses.Occupied;
+        // Ensures funds are sent using call and require
+        (bool sent, bytes memory data) = owner.call{value: msg.value}("");
+        require(true);
+
+        emit Occupy(msg.sender, msg.value);
+    }
+
+}
